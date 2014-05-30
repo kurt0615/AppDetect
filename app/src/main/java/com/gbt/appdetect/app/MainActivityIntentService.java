@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ResultReceiver;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -164,6 +165,22 @@ public class MainActivityIntentService extends Activity {
         return false;
     }
 
+    public void launchApp(String packageName)
+    {
+        Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
+
+        if (intent != null){
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        }
+        else{
+            intent = new Intent(Intent.ACTION_VIEW);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setData(Uri.parse("market://details?id="+packageName));
+            startActivity(intent);
+        }
+    }
+
 
     class ListAdapter extends SimpleAdapter {
         private Context ctxt;
@@ -193,21 +210,26 @@ public class MainActivityIntentService extends Activity {
 
             Map map = this.dataSource.get(position);
 
-            String appPkgName = map.get("pkg").toString();
+            final String appPkgName = map.get("pkg").toString();
             holder.title.setText(map.get("title").toString());
 
             if (checkInstall(appPkgName)) {
-                holder.btn.setText("已安裝");
+                holder.btn.setText("開啟");
+                holder.btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        MainActivityIntentService.this.launchApp(appPkgName);
+                    }
+                });
             } else {
                 holder.btn.setText("安裝");
-
+                holder.btn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        MainActivityIntentService.this.doDownload();
+                    }
+                });
             }
-            holder.btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    MainActivityIntentService.this.doDownload();
-                }
-            });
 
             return view;
         }
