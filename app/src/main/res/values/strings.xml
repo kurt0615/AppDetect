@@ -3,5 +3,7 @@
 
     <string name="app_name">AppDetect</string>
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_main_activity_dm">MainActivityDM</string>
+    <string name="action_settings">Settings</string>
 
 </resources>
