@@ -1,5 +1,6 @@
 package com.gbt.appdetect.app;
 
+import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -8,8 +9,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.WakefulBroadcastReceiver;
+import android.util.Log;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by kurt.yang on 2014/4/22.
@@ -20,6 +24,10 @@ public class DownloadBroadcastReceiver extends WakefulBroadcastReceiver {
 
         String action = intent.getAction();
         String appPkgName;
+        long[] downloadIds = intent.getLongArrayExtra(DownloadManager.EXTRA_NOTIFICATION_CLICK_DOWNLOAD_IDS);
+        long myId = context.getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).getLong("DownloadId", -1);
+
+
 
         if (action.equals("android.intent.action.DOWNLOAD_COMPLETE")) {
             appPkgName = context.getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).getString("AppPkgName", null);
@@ -28,6 +36,15 @@ public class DownloadBroadcastReceiver extends WakefulBroadcastReceiver {
                 SharedPreferences.Editor editor = context.getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).edit();
                 editor.clear();
                 editor.commit();
+            }
+        }else if (action.equals("android.intent.action.DOWNLOAD_NOTIFICATION_CLICKED")) {
+            //TODO
+            Arrays.sort(downloadIds);
+            int index = Arrays.binarySearch(downloadIds,myId);
+
+            if(index > -1) {
+                //launchApp(context);
+                Log.i("DOWNLOAD_NOTIFICATION_CLICKED", "ABC");
             }
         } else if (action.equals("android.intent.action.PACKAGE_ADDED")) {
             appPkgName = intent.getDataString();
@@ -48,5 +65,12 @@ public class DownloadBroadcastReceiver extends WakefulBroadcastReceiver {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setDataAndType(Uri.fromFile(new File(Environment.getExternalStorageDirectory(), String.format("/GApps/%s.apk", appPkgName))), "application/vnd.android.package-archive");
         context.startActivity(intent);
+    }
+
+    private void launchApp(Context context)
+    {
+        Intent i = new Intent(context, MainActivityDM.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(i);
     }
 }

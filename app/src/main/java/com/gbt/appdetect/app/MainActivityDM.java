@@ -38,7 +38,8 @@ import java.util.Map;
 
 public class MainActivityDM extends Activity {
 
-    private int INSTALL_COMPLETE = 1;
+    private final Boolean SystemDownloadBar = true;
+    private final int INSTALL_COMPLETE = 1;
     private ListView listView;
     private ListAdapter simpleAdapter;
     private List<Map<String, Object>> items;
@@ -70,6 +71,13 @@ public class MainActivityDM extends Activity {
                 items, R.layout.item, new String[]{"title"},
                 new int[]{R.id.title});
         listView.setAdapter(simpleAdapter);
+
+
+        long downloadId = getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).getLong("DownloadId", -1);
+        if (downloadId != -1){
+            updateProgress(downloadId);
+        }
+
     }
 
     private void genDetectItems() {
@@ -145,7 +153,7 @@ public class MainActivityDM extends Activity {
         }
     }
 
-    private void updateProgress(final long downloadId, final String appPkgName) {
+    private void updateProgress(final long downloadId) {
 
         final DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
@@ -207,7 +215,16 @@ public class MainActivityDM extends Activity {
                                 }
                             }
                         });
+
+                        Log.i("downresonMessage",resonMessage(cursor));
+
+                        Log.i("downInfo",statusMessage(cursor));
+                    }else{
+                        removeDownloadInfo();
                     }
+
+                    //statusMessage
+
                     cursor.close();
                 }
 
@@ -228,12 +245,17 @@ public class MainActivityDM extends Activity {
 
     public void doDownload(String appPkgName) {
         //https://dl.dropboxusercontent.com/u/2787615/vote.apk
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(String.format("https://dl.dropboxusercontent.com/u/2787615/vote.apk",appPkgName)));
+        //https://secure-appldnld.apple.com/iTunes11/031-02993.20140528.Pu4r5/iTunes64Setup.exe
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(String.format("https://secure-appldnld.apple.com/iTunes11/031-02993.20140528.Pu4r5/iTunes64Setup.exe",appPkgName)));
         //request.setDescription("AppName");
         //request.setTitle("下載中");
         request.allowScanningByMediaScanner();
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
-        //request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+        if(SystemDownloadBar){
+            //request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        }else{
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
+        }
 
         if (isExternalStorageWritable()) {
 
@@ -258,7 +280,7 @@ public class MainActivityDM extends Activity {
 
         addDownloadInfo(downloadId, appPkgName);
 
-        updateProgress(downloadId, appPkgName);
+        updateProgress(downloadId);
     }
 
     private void addDownloadInfo(long downloadId, String appPkgName) {
@@ -274,7 +296,7 @@ public class MainActivityDM extends Activity {
         editor.commit();
     }
 
-    /*private String statusMessage(Cursor c) {
+    private String statusMessage(Cursor c) {
         String msg = "???";
 
         switch (c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS))) {
@@ -304,7 +326,31 @@ public class MainActivityDM extends Activity {
         }
 
         return (msg);
-    }*/
+    }
+
+    private String resonMessage(Cursor c) {
+        String msg = "???";
+
+        switch (c.getInt(c.getColumnIndex(DownloadManager.COLUMN_REASON))) {
+            case DownloadManager.PAUSED_QUEUED_FOR_WIFI:
+                msg = "PAUSED_QUEUED_FOR_WIFI";
+                break;
+            case DownloadManager.PAUSED_UNKNOWN:
+                msg = "PAUSED_UNKNOWN";
+                break;
+            case DownloadManager.PAUSED_WAITING_FOR_NETWORK:
+                msg = "PAUSED_WAITING_FOR_NETWORK";
+                break;
+            case DownloadManager.PAUSED_WAITING_TO_RETRY:
+                msg = "PAUSED_WAITING_TO_RETRY";
+                break;
+            default:
+                msg = "no reson";
+                break;
+        }
+
+        return (msg);
+    }
 
     public boolean isExternalStorageWritable() {
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
