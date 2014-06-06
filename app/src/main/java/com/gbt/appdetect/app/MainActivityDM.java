@@ -3,8 +3,10 @@ package com.gbt.appdetect.app;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -14,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -41,10 +44,23 @@ public class MainActivityDM extends Activity {
     private List<Map<String, Object>> items;
     private ProgressDialog barProgressDialog;
 
+    private BroadcastReceiver localReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Bundle bundle = intent.getExtras();
+            String action = bundle.getString("action");
+            if(action.equals("PACKAGE_ADDED")){
+                simpleAdapter.notifyDataSetChanged();
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(localReceiver,new IntentFilter(this.getClass().getName()));
 
         listView = (ListView) findViewById(R.id.listView);
 
@@ -54,13 +70,6 @@ public class MainActivityDM extends Activity {
                 items, R.layout.item, new String[]{"title"},
                 new int[]{R.id.title});
         listView.setAdapter(simpleAdapter);
-
-        final long downloadId = getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).getLong("DownloadId", -1);
-        final String appPkgName = getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).getString("AppPkgName",null);
-
-        if (downloadId != -1) {
-            updateProgress(downloadId,appPkgName);
-        }
     }
 
     private void genDetectItems() {
@@ -107,6 +116,7 @@ public class MainActivityDM extends Activity {
 
     private void installApk(String appPkgName) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setDataAndType(Uri.fromFile(new File(Environment.getExternalStorageDirectory(), String.format("/GApps/%s.apk",appPkgName))), "application/vnd.android.package-archive");
         startActivityForResult(intent, INSTALL_COMPLETE);
     }
@@ -201,8 +211,6 @@ public class MainActivityDM extends Activity {
                     cursor.close();
                 }
 
-                removeDownloadId(downloadId);
-
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -214,9 +222,6 @@ public class MainActivityDM extends Activity {
                     }
                 });
 
-                if(appPkgName != null){
-                    installApk(appPkgName);
-                }
             }
         }).start();
     }
@@ -251,19 +256,19 @@ public class MainActivityDM extends Activity {
 
         final long downloadId = manager.enqueue(request);
 
-        addDownloadId(downloadId, appPkgName);
+        addDownloadInfo(downloadId, appPkgName);
 
         updateProgress(downloadId, appPkgName);
     }
 
-    private void addDownloadId(long downloadId, String appPkgName) {
+    private void addDownloadInfo(long downloadId, String appPkgName) {
         SharedPreferences.Editor editor = getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).edit();
         editor.putLong("DownloadId", downloadId);
         editor.putString("AppPkgName", appPkgName);
         editor.commit();
     }
 
-    private void removeDownloadId(long downloadId) {
+    private void removeDownloadInfo() {
         SharedPreferences.Editor editor = getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).edit();
         editor.clear();
         editor.commit();

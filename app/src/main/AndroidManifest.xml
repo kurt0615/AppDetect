@@ -7,7 +7,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
 
-
     <uses-sdk
         android:minSdkVersion="14"
         android:targetSdkVersion="18" />
@@ -31,6 +30,17 @@
             android:name="com.gbt.appdetect.app.DownloadService"
             android:exported="false" >
         </service>
+
+        <receiver android:name="com.gbt.appdetect.app.DownloadBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.DOWNLOAD_COMPLETE"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED"/>
+                <data android:scheme="package"/>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>
