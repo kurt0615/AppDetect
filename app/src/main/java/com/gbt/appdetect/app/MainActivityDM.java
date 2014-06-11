@@ -40,7 +40,7 @@ import java.util.Map;
 
 public class MainActivityDM extends Activity {
 
-    private final Boolean SystemDownloadBar = true;
+    private final Boolean SystemDownloadBar = false;
     private final int INSTALL_COMPLETE = 1;
     private ListView listView;
     private ListAdapter simpleAdapter;
