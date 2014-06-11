@@ -14,7 +14,7 @@ import java.net.URL;
 
 public class RequestUtil {
 
-    public static void doDownload(String sURL, Context applicationContext, OutputStream fileOutputStream, String progressBarId) {
+    public void doDownload(String sURL, Context applicationContext, OutputStream fileOutputStream, String progressBarId) {
         HttpURLConnection urlConn = null;
         try {
             URL url = new URL(sURL);

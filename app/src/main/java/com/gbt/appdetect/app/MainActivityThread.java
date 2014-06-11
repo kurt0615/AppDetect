@@ -82,7 +82,7 @@ public class MainActivityThread extends Activity {
         items.add(item);
 
 
-        /*item = new HashMap<String, Object>();
+        item = new HashMap<String, Object>();
         item.put("title", "投票");
         item.put("pkg", "com.gigabyte.vote");
         items.add(item);
@@ -112,7 +112,7 @@ public class MainActivityThread extends Activity {
         item = new HashMap<String, Object>();
         item.put("title", "投票");
         item.put("pkg", "com.gigabyte.vote");
-        items.add(item);*/
+        items.add(item);
 
     }
 
@@ -160,6 +160,8 @@ public class MainActivityThread extends Activity {
         }else{
             progressBar.setProgress(progress);
         }
+
+        simpleAdapter.notifyDataSetChanged();
     }
 
 
@@ -198,7 +200,7 @@ public class MainActivityThread extends Activity {
 
                 //https://secure-appldnld.apple.com/iTunes11/031-02949.20140515.ZP3er/iTunes64Setup.exe
                 //https://dl.dropboxusercontent.com/u/2787615/vote.apk
-                RequestUtil.doDownload("https://secure-appldnld.apple.com/iTunes11/031-02949.20140515.ZP3er/iTunes64Setup.exe", MainActivityThread.this.getApplicationContext(), fileOutputStream, progressBarId);
+                new RequestUtil().doDownload("https://secure-appldnld.apple.com/iTunes11/031-02949.20140515.ZP3er/iTunes64Setup.exe", MainActivityThread.this.getApplicationContext(), fileOutputStream, progressBarId);
                 Looper.loop();
             }
         }).start();
