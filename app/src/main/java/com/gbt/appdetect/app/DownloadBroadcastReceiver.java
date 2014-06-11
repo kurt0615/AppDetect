@@ -23,35 +23,44 @@ public class DownloadBroadcastReceiver extends WakefulBroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
 
         String action = intent.getAction();
-        String appPkgName;
-        long[] downloadIds = intent.getLongArrayExtra(DownloadManager.EXTRA_NOTIFICATION_CLICK_DOWNLOAD_IDS);
-        long myId = context.getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).getLong("DownloadId", -1);
 
+        Log.i("action",action);
 
+        long downloadId = context.getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).getLong("DownloadId", -1);
 
-        if (action.equals("android.intent.action.DOWNLOAD_COMPLETE")) {
-            appPkgName = context.getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).getString("AppPkgName", null);
-            if (!appPkgName.isEmpty()) {
+        if (action.equals("android.intent.action.DOWNLOAD_COMPLETE") && downloadId != -1) {
+            String appPkgName = context.getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).getString("AppPkgName", null);
+            if (appPkgName != null) {
                 installApk(appPkgName, context);
                 SharedPreferences.Editor editor = context.getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).edit();
                 editor.clear();
                 editor.commit();
             }
-        }else if (action.equals("android.intent.action.DOWNLOAD_NOTIFICATION_CLICKED")) {
-            //TODO
+        } else if (action.equals("android.intent.action.DOWNLOAD_NOTIFICATION_CLICKED") && downloadId != -1) {
+            Log.i("DOWNLOAD_NOTIFICATION_CLICKED","CLICKED");
+            long[] downloadIds = intent.getLongArrayExtra(DownloadManager.EXTRA_NOTIFICATION_CLICK_DOWNLOAD_IDS);
             Arrays.sort(downloadIds);
-            int index = Arrays.binarySearch(downloadIds,myId);
+            int index = Arrays.binarySearch(downloadIds,downloadId);
 
             if(index > -1) {
-                //launchApp(context);
-                Log.i("DOWNLOAD_NOTIFICATION_CLICKED", "ABC");
+                launchApp(context);
             }
         } else if (action.equals("android.intent.action.PACKAGE_ADDED")) {
-            appPkgName = intent.getDataString();
+            String appPkgName = intent.getDataString();
             if (appPkgName.indexOf("package:com.gbt") == 0 || appPkgName.indexOf("package:com.gigabyte") == 0) {
                 Bundle bundle = new Bundle();
                 bundle.putString("action","PACKAGE_ADDED");
                 bundle.putString("appPkgName",appPkgName.substring(8));
+                Intent toIntent = new Intent();
+                toIntent.putExtras(bundle);
+                toIntent.setAction("com.gbt.appdetect.app.MainActivityDM");
+                LocalBroadcastManager.getInstance(context).sendBroadcast(toIntent);
+            }
+        } else if (action.equals("android.intent.action.PACKAGE_FULLY_REMOVED")) {
+            String appPkgName = intent.getDataString();
+            if (appPkgName.indexOf("package:com.gbt") == 0 || appPkgName.indexOf("package:com.gigabyte") == 0) {
+                Bundle bundle = new Bundle();
+                bundle.putString("action","PACKAGE_FULLY_REMOVED");
                 Intent toIntent = new Intent();
                 toIntent.putExtras(bundle);
                 toIntent.setAction("com.gbt.appdetect.app.MainActivityDM");
@@ -70,7 +79,7 @@ public class DownloadBroadcastReceiver extends WakefulBroadcastReceiver {
     private void launchApp(Context context)
     {
         Intent i = new Intent(context, MainActivityDM.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         context.startActivity(i);
     }
 }

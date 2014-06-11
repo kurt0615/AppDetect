@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pre-dex-items>
+
+    <item
+        dex="D:\github\AppDetect\app\build\intermediates\pre-dexed\debug\classes-751de625ae0437dabae1a8f1e0643bba0088bad4.jar"
+        jar="D:\github\AppDetect\build\intermediates\exploded-aar\com.android.support\appcompat-v7\19.0.1\classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="f71a6822470c9eb659d4f4a6cb57b780b35f058b"/>
+    <item
+        dex="D:\github\AppDetect\app\build\intermediates\pre-dexed\debug\support-v4-19.0.1-91ae611ab59e74e4f0432f2e6f7d2d5f49e72a23.jar"
+        jar="C:\Users\kurt.yang\AppData\Local\Android\android-studio\sdk\extras\android\m2repository\com\android\support\support-v4\19.0.1\support-v4-19.0.1.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="587da9a481ffd341d2fa091704489b89845ddacd"/>
+
+</pre-dex-items>

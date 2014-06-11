@@ -5,6 +5,7 @@ import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -16,6 +17,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.preference.DialogPreference;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -50,7 +52,15 @@ public class MainActivityDM extends Activity {
         public void onReceive(Context context, Intent intent) {
             Bundle bundle = intent.getExtras();
             String action = bundle.getString("action");
-            if(action.equals("PACKAGE_ADDED")){
+            if(action.equals("DOWNLOAD_COMPLETE")){
+                simpleAdapter.notifyDataSetChanged();
+                if (barProgressDialog != null){
+                    barProgressDialog.dismiss();
+                    barProgressDialog = null;
+                }
+            } else if(action.equals("PACKAGE_ADDED")){
+                simpleAdapter.notifyDataSetChanged();
+            } else if(action.equals("PACKAGE_FULLY_REMOVED")){
                 simpleAdapter.notifyDataSetChanged();
             }
         }
@@ -61,8 +71,6 @@ public class MainActivityDM extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(localReceiver,new IntentFilter(this.getClass().getName()));
-
         listView = (ListView) findViewById(R.id.listView);
 
         this.genDetectItems();
@@ -71,13 +79,42 @@ public class MainActivityDM extends Activity {
                 items, R.layout.item, new String[]{"title"},
                 new int[]{R.id.title});
         listView.setAdapter(simpleAdapter);
+    }
 
+    @Override
+    protected void onResume() {
+
+        super.onResume();
+        Log.i("DOWNLOAD_NOTIFICATION_CLICKED","onResume");
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(localReceiver,new IntentFilter(this.getClass().getName()));
 
         long downloadId = getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).getLong("DownloadId", -1);
         if (downloadId != -1){
             updateProgress(downloadId);
         }
 
+        if(simpleAdapter != null){
+            simpleAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(localReceiver);
+        super.onPause();
+
+        Log.i("onPause","onPause");
+        if (barProgressDialog != null){
+            barProgressDialog.dismiss();
+            barProgressDialog = null;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+
+        super.onDestroy();
     }
 
     private void genDetectItems() {
@@ -103,7 +140,7 @@ public class MainActivityDM extends Activity {
         for (int i = 0; i < packageInfoList.size(); i++) {
             PackageInfo pak = (PackageInfo) packageInfoList.get(i);
             if ((pak.applicationInfo.flags & pak.applicationInfo.FLAG_SYSTEM) <= 0) {
-                // customs applications
+
                 if (appPkgName.equals(pak.packageName)) {
                     return true;
                 }
@@ -157,20 +194,23 @@ public class MainActivityDM extends Activity {
 
         final DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
-        new Thread(new Runnable() {
+        if (barProgressDialog != null){
+            barProgressDialog.dismiss();
+            barProgressDialog = null;
+        }
 
+        new Thread(new Runnable() {
             @Override
             public void run() {
 
-                boolean downloading = true;
-                int downloadStatus = -1;
+                final boolean[] downloading = {true};
 
-                while (downloading) {
+                while (downloading[0]) {
 
                     DownloadManager.Query q = new DownloadManager.Query();
                     q.setFilterById(downloadId);
 
-                    Cursor cursor = manager.query(q);
+                    final Cursor cursor = manager.query(q);
 
                     if (cursor.getCount() > 0) {
 
@@ -180,10 +220,12 @@ public class MainActivityDM extends Activity {
 
                         final int bytes_total = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
 
-                        downloadStatus = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
+                        final int downloadStatus = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
                         if (downloadStatus == DownloadManager.STATUS_SUCCESSFUL || downloadStatus == DownloadManager.STATUS_FAILED) {
-                            downloading = false;
+                            downloading[0] = false;
                         }
+
+                        final int pauseReason = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON));
 
                         final int dl_progress = (int) ((bytes_downloaded * 100l) / bytes_total);
 
@@ -191,54 +233,57 @@ public class MainActivityDM extends Activity {
 
                             @Override
                             public void run() {
+                                if(downloading[0]){
+                                    if (barProgressDialog == null) {
 
-                                if (barProgressDialog == null || !barProgressDialog.isShowing()) {
+                                        barProgressDialog = new ProgressDialog(MainActivityDM.this);
 
-                                    barProgressDialog = new ProgressDialog(MainActivityDM.this);
+                                        barProgressDialog.setTitle("下載中");
 
-                                    barProgressDialog.setTitle("下載中");
+                                        //barProgressDialog.setMessage("下載中");
 
-                                    //barProgressDialog.setMessage("下載中");
+                                        barProgressDialog.setProgressStyle(barProgressDialog.STYLE_HORIZONTAL);
 
-                                    barProgressDialog.setProgressStyle(barProgressDialog.STYLE_HORIZONTAL);
+                                        barProgressDialog.setProgress(dl_progress);
 
-                                    barProgressDialog.setProgress(dl_progress);
+                                        barProgressDialog.setProgressNumberFormat(null);
 
-                                    barProgressDialog.setProgressNumberFormat(null);
+                                        barProgressDialog.setCancelable(false);
 
-                                    barProgressDialog.setCancelable(false);
+                                        barProgressDialog.setButton(DialogInterface.BUTTON_POSITIVE,"取消", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                removeDownloadInfo();
+                                                downloading[0] = false;
+                                                int removeCount = manager.remove(downloadId);
+                                                if (barProgressDialog != null){
+                                                    barProgressDialog.dismiss();
+                                                    barProgressDialog = null;
+                                                }
+                                                simpleAdapter.notifyDataSetChanged();
+                                            }
+                                        });
+                                        barProgressDialog.show();
+                                    } else {
+                                        if(downloadStatus == DownloadManager.STATUS_PAUSED){
+                                            if(pauseReason == DownloadManager.PAUSED_WAITING_FOR_NETWORK){
+                                                barProgressDialog.setTitle("等待網路連線");
+                                            }
+                                        }else{
+                                            barProgressDialog.setTitle("下載中");
+                                        }
 
-                                    barProgressDialog.show();
-
-                                } else {
-                                    barProgressDialog.setProgress(dl_progress);
+                                        barProgressDialog.setProgress(dl_progress);
+                                    }
                                 }
                             }
                         });
-
-                        Log.i("downresonMessage",resonMessage(cursor));
-
-                        Log.i("downInfo",statusMessage(cursor));
                     }else{
+                        downloading[0] = false;
                         removeDownloadInfo();
                     }
-
-                    //statusMessage
-
                     cursor.close();
                 }
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (barProgressDialog != null){
-                            barProgressDialog.dismiss();
-                            barProgressDialog = null;
-                        }
-                        simpleAdapter.notifyDataSetChanged();
-                    }
-                });
-
             }
         }).start();
     }
@@ -246,7 +291,7 @@ public class MainActivityDM extends Activity {
     public void doDownload(String appPkgName) {
         //https://dl.dropboxusercontent.com/u/2787615/vote.apk
         //https://secure-appldnld.apple.com/iTunes11/031-02993.20140528.Pu4r5/iTunes64Setup.exe
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(String.format("https://secure-appldnld.apple.com/iTunes11/031-02993.20140528.Pu4r5/iTunes64Setup.exe",appPkgName)));
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(String.format("https://dl.dropboxusercontent.com/u/2787615/vote.apk",appPkgName)));
         //request.setDescription("AppName");
         //request.setTitle("下載中");
         request.allowScanningByMediaScanner();
@@ -296,7 +341,7 @@ public class MainActivityDM extends Activity {
         editor.commit();
     }
 
-    private String statusMessage(Cursor c) {
+    /*private String statusMessage(Cursor c) {
         String msg = "???";
 
         switch (c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS))) {
@@ -345,12 +390,12 @@ public class MainActivityDM extends Activity {
                 msg = "PAUSED_WAITING_TO_RETRY";
                 break;
             default:
-                msg = "no reson";
+                msg = "nothing";
                 break;
         }
 
         return (msg);
-    }
+    }*/
 
     public boolean isExternalStorageWritable() {
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
@@ -358,6 +403,7 @@ public class MainActivityDM extends Activity {
         }
         return false;
     }
+
 
     class ListAdapter extends SimpleAdapter {
         private Context ctxt;
