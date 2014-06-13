@@ -35,6 +35,15 @@ public class DownloadBroadcastReceiver extends WakefulBroadcastReceiver {
                 SharedPreferences.Editor editor = context.getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).edit();
                 editor.clear();
                 editor.commit();
+
+                Bundle bundle = new Bundle();
+                bundle.putString("action","DOWNLOAD_COMPLETE");
+                bundle.putString("appPkgName",appPkgName);
+                bundle.putLong("downloadId",downloadId);
+                Intent toIntent = new Intent();
+                toIntent.putExtras(bundle);
+                toIntent.setAction("com.gbt.appdetect.app.MainActivityThreadDM");
+                LocalBroadcastManager.getInstance(context).sendBroadcast(toIntent);
             }
         } else if (action.equals("android.intent.action.DOWNLOAD_NOTIFICATION_CLICKED") && downloadId != -1) {
             Log.i("DOWNLOAD_NOTIFICATION_CLICKED","CLICKED");
@@ -53,7 +62,7 @@ public class DownloadBroadcastReceiver extends WakefulBroadcastReceiver {
                 bundle.putString("appPkgName",appPkgName.substring(8));
                 Intent toIntent = new Intent();
                 toIntent.putExtras(bundle);
-                toIntent.setAction("com.gbt.appdetect.app.MainActivityDM");
+                toIntent.setAction("com.gbt.appdetect.app.MainActivityThreadDM");
                 LocalBroadcastManager.getInstance(context).sendBroadcast(toIntent);
             }
         } else if (action.equals("android.intent.action.PACKAGE_FULLY_REMOVED")) {
@@ -63,7 +72,7 @@ public class DownloadBroadcastReceiver extends WakefulBroadcastReceiver {
                 bundle.putString("action","PACKAGE_FULLY_REMOVED");
                 Intent toIntent = new Intent();
                 toIntent.putExtras(bundle);
-                toIntent.setAction("com.gbt.appdetect.app.MainActivityDM");
+                toIntent.setAction("com.gbt.appdetect.app.MainActivityThreadDM");
                 LocalBroadcastManager.getInstance(context).sendBroadcast(toIntent);
             }
         }
