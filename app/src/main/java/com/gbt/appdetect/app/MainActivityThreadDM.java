@@ -48,6 +48,7 @@ public class MainActivityThreadDM extends Activity {
     private BroadcastReceiver localReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            String a = "";
             Bundle bundle = intent.getExtras();
             String action = bundle.getString("action");
             if(action.equals("DOWNLOAD_COMPLETE")){
