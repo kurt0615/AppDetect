@@ -216,7 +216,7 @@ public class MainActivityThreadDM extends Activity {
 
         //https://dl.dropboxusercontent.com/u/2787615/vote.apk
         //https://secure-appldnld.apple.com/iTunes11/031-02993.20140528.Pu4r5/iTunes64Setup.exe
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(String.format("https://secure-appldnld.apple.com/iTunes11/031-02993.20140528.Pu4r5/iTunes64Setup.exe")));
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(String.format("https://dl.dropboxusercontent.com/u/2787615/vote.apk")));
         //request.setDescription("AppName");
         //request.setTitle("下載中");
         request.allowScanningByMediaScanner();

@@ -82,7 +82,6 @@ public class DownloadInfo implements Runnable {
                 downloadStatus = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
                 if (downloadStatus == DownloadManager.STATUS_SUCCESSFUL || downloadStatus == DownloadManager.STATUS_FAILED) {
                     downloading = false;
-                    Log.i("a",String.valueOf(downloadStatus));
                 }
 
                 reason = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_REASON));

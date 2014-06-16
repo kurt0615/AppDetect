@@ -25,6 +25,15 @@
         android:layout_marginBottom="10dp"
         android:layout_below="@+id/title"
         android:layout_centerHorizontal="true"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="reDownload"
+        android:id="@+id/rbtn"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_below="@+id/btn"
+        android:layout_centerHorizontal="true"/>
 
     <ProgressBar
         android:id="@+id/pb"
@@ -32,7 +41,7 @@
         android:layout_centerHorizontal="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/btn"
+        android:layout_below="@+id/rbtn"
         android:layout_marginBottom="30dp"
         android:visibility="gone"
     />

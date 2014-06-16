@@ -56,6 +56,7 @@ public class DownloadBroadcastReceiver extends WakefulBroadcastReceiver {
             }
         } else if (action.equals("android.intent.action.PACKAGE_ADDED")) {
             String appPkgName = intent.getDataString();
+            int a = intent.getFlags();
             if (appPkgName.indexOf("package:com.gbt") == 0 || appPkgName.indexOf("package:com.gigabyte") == 0) {
                 Bundle bundle = new Bundle();
                 bundle.putString("action","PACKAGE_ADDED");
@@ -79,10 +80,15 @@ public class DownloadBroadcastReceiver extends WakefulBroadcastReceiver {
     }
 
     private void installApk(String appPkgName, Context context) {
-        Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setDataAndType(Uri.fromFile(new File(Environment.getExternalStorageDirectory(), String.format("/GApps/%s.apk", appPkgName))), "application/vnd.android.package-archive");
-        context.startActivity(intent);
+        try {
+            Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setDataAndType(Uri.fromFile(new File(Environment.getExternalStorageDirectory(), String.format("/GApps/%s2.apk", appPkgName))), "application/vnd.android.package-archive");
+            context.startActivity(intent);
+        }catch (Exception e){
+            Log.i("a","ab");
+        }
+
     }
 
     private void launchApp(Context context)
