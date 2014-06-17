@@ -15,8 +15,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -298,6 +301,14 @@ public class MainActivityThreadDM extends Activity {
         editor.commit();
     }
 
+    private void removeApkFile(String appPkgName){
+        File file = new File(Environment.getExternalStorageDirectory() + "/GApps");
+        file = new File(file, String.format("%s.apk", appPkgName));
+        if (file.exists()) {
+            file.delete();
+        }
+    }
+
 
     class ListAdapter extends SimpleAdapter {
         private Context ctxt;
@@ -338,17 +349,8 @@ public class MainActivityThreadDM extends Activity {
 
                                 if (DownloadManager.STATUS_SUCCESSFUL == status) {
                                     downloadQueue.remove(appPkgName);
-                                    holder.btn.setText("安裝");
-                                    holder.btn.setEnabled(true);
-                                    holder.btn.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            MainActivityThreadDM.this.installApk(appPkgName);
-                                        }
-                                    });
                                     holder.progressBar.setVisibility(View.GONE);
                                 } else {
-
                                     holder.progressBar.setProgress(progress);
 
                                     if (DownloadManager.PAUSED_WAITING_FOR_NETWORK == reason) {
@@ -394,9 +396,7 @@ public class MainActivityThreadDM extends Activity {
                 new Handler().post(new Runnable() {
                     @Override
                     public void run() {
-                        if (appPkgName.equals("com.gigabyte.practice")) {
-                            Log.i("a", "a");
-                        }
+                        
                         if (checkAppisInstall(appPkgName)) {
                             holder.btn.setText("開啟");
                             holder.btn.setEnabled(true);
@@ -419,9 +419,30 @@ public class MainActivityThreadDM extends Activity {
                             holder.btn.setOnLongClickListener(new View.OnLongClickListener() {
                                 @Override
                                 public boolean onLongClick(View v) {
+                                    PopupMenu popup = new PopupMenu(MainActivityThreadDM.this, v);
+                                    MenuInflater inflater = popup.getMenuInflater();
+                                    inflater.inflate(R.menu.popup, popup.getMenu());
+
+                                    popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                                        @Override
+                                        public boolean onMenuItemClick(MenuItem menuItem) {
+                                            Intent intent = null;
+                                            switch (menuItem.getItemId()) {
+                                                case R.id.redownload:
+                                                    removeApkFile(appPkgName);
+                                                    MainActivityThreadDM.this.doDownload(appPkgName, url);
+                                                    return true;
+                                                default:
+                                                    return false;
+                                            }
+                                        }
+                                    });
+
+                                    popup.show();
                                     return false;
                                 }
                             });
+
                         } else {
                             holder.btn.setText("下載並安裝");
                             holder.btn.setEnabled(true);
