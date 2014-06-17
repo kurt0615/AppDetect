@@ -91,16 +91,8 @@ public class DownloadInfo implements Runnable {
                 setReason(reason);
                 setProgress(dl_progress);
 
-            }/*else{
-                downloading = false;
-                setStatus(downloadStatus);
-                setReason(reason);
-                setProgress(dl_progress);
-            }*/
+            }
             cursor.close();
         }
-       /* setStatus(downloadStatus);
-        setReason(reason);
-        setProgress(dl_progress);*/
     }
 }
