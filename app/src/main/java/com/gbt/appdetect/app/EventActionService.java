@@ -46,6 +46,9 @@ public class EventActionService extends IntentService {
 
             } else if (PACKAGE_ADDED.equals(action)) {
 
+                String appPkgName = bundle.getString("appPkgName");
+                removeApkFile(appPkgName);
+
                 bundle.putString("action","PACKAGE_ADDED");
                 Intent toIntent = new Intent();
                 toIntent.putExtras(bundle);
@@ -80,5 +83,13 @@ public class EventActionService extends IntentService {
         SharedPreferences.Editor editor = getSharedPreferences("DownloadInfo", Context.MODE_PRIVATE).edit();
         editor.remove(downloadId);
         editor.commit();
+    }
+
+    private void removeApkFile(String appPkgName){
+        File file = new File(Environment.getExternalStorageDirectory() + "/GApps");
+        file = new File(file, String.format("%s.apk", appPkgName));
+        if (file.exists()) {
+            file.delete();
+        }
     }
 }

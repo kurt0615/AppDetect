@@ -415,6 +415,13 @@ public class MainActivityThreadDM extends Activity {
                                     MainActivityThreadDM.this.installApk(appPkgName);
                                 }
                             });
+
+                            holder.btn.setOnLongClickListener(new View.OnLongClickListener() {
+                                @Override
+                                public boolean onLongClick(View v) {
+                                    return false;
+                                }
+                            });
                         } else {
                             holder.btn.setText("下載並安裝");
                             holder.btn.setEnabled(true);
