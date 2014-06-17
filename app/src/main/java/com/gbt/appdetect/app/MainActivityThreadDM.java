@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivityThreadDM extends Activity {
-    private final int INSTALL_COMPLETE = 1;
+    //private final int INSTALL_COMPLETE = 1;
 
     private ListView listView;
     private ListAdapter simpleAdapter;
@@ -185,7 +185,7 @@ public class MainActivityThreadDM extends Activity {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setDataAndType(Uri.fromFile(new File(Environment.getExternalStorageDirectory(), String.format("/GApps/%s.apk", appPkgName))), "application/vnd.android.package-archive");
-        startActivityForResult(intent, INSTALL_COMPLETE);
+        startActivity(intent);
     }
 
     public void launchApp(String packageName)
