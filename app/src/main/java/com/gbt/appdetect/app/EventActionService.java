@@ -24,6 +24,7 @@ public class EventActionService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+
         if (intent != null) {
 
             final Bundle bundle = intent.getExtras();

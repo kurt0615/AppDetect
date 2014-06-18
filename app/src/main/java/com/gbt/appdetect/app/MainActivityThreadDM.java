@@ -221,7 +221,7 @@ public class MainActivityThreadDM extends Activity {
         //request.setTitle("下載中");
         request.allowScanningByMediaScanner();
 
-        //request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
 
         if (isExternalStorageWritable()) {
 
@@ -396,7 +396,7 @@ public class MainActivityThreadDM extends Activity {
                 new Handler().post(new Runnable() {
                     @Override
                     public void run() {
-                        
+
                         if (checkAppisInstall(appPkgName)) {
                             holder.btn.setText("開啟");
                             holder.btn.setEnabled(true);
