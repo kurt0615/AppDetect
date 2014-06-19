@@ -4,7 +4,10 @@ import android.app.DownloadManager;
 import android.database.Cursor;
 import android.util.Log;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class DownloadInfo implements Runnable {
 
@@ -12,14 +15,24 @@ public class DownloadInfo implements Runnable {
         void onProgressChanged(final int progress, final int status, final int reason);
     }
 
-    private Vector<ProgressListener> progressListenerList;
+    private List<ProgressListener> progressListenerList;
 
     public void addListener(ProgressListener l) {
         progressListenerList.add(l);
     }
 
     public void removeListener(ProgressListener l){
-        progressListenerList.remove(l);
+        //progressListenerList.remove(l);
+
+        Iterator<ProgressListener> ite = progressListenerList.iterator();
+
+        while (ite.hasNext()){
+            ProgressListener value = ite.next();
+
+            if(value == l){
+                progressListenerList.remove(l);
+            }
+        }
     }
 
     private long downloadId;
@@ -53,7 +66,7 @@ public class DownloadInfo implements Runnable {
     public DownloadInfo(long downloadId, DownloadManager manager){
         this.downloadId = downloadId;
         this.manager = manager;
-        progressListenerList = new Vector<ProgressListener>();
+        progressListenerList = new CopyOnWriteArrayList<ProgressListener>();
     }
 
     @Override

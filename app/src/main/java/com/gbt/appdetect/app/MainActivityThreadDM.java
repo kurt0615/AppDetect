@@ -15,7 +15,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -24,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -52,7 +52,7 @@ public class MainActivityThreadDM extends Activity {
                 Bundle bundle = intent.getExtras();
                 String action = bundle.getString("action");
 
-                //Log.i("onReceive_action","action");
+                Log.i("onReceive_action",action);
 
                 if (action.equals("DOWNLOAD_COMPLETE")) {
                     downloadQueue.remove(bundle.get("appPkgName"));
@@ -87,12 +87,12 @@ public class MainActivityThreadDM extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(localReceiver, new IntentFilter(this.getClass().getName()));
+        LocalBroadcastManager.getInstance(this.getApplicationContext()).registerReceiver(localReceiver, new IntentFilter(this.getClass().getName()));
     }
 
     @Override
     protected void onDestroy() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(localReceiver);
+        LocalBroadcastManager.getInstance(this.getApplicationContext()).unregisterReceiver(localReceiver);
         super.onDestroy();
     }
 
@@ -373,14 +373,14 @@ public class MainActivityThreadDM extends Activity {
 
             holder.title.setText(map.get("title").toString());
 
-
             //將畫面外的listener給刪掉
             if (holder.di != null && holder.dil != null) {
                 holder.di.removeListener(holder.dil);
             }
 
             //新增在畫面上的listener
-            holder.di = downloadQueue.get(appPkgName);
+            final DownloadInfo di = downloadQueue.get(appPkgName);
+            holder.di = di;
             if (holder.di != null && holder.dil != null) {
                 holder.di.addListener(holder.dil);
                 new Handler().post(new Runnable() {
@@ -389,7 +389,7 @@ public class MainActivityThreadDM extends Activity {
                         if (holder.progressBar.getVisibility() == View.GONE) {
                             holder.progressBar.setVisibility(View.VISIBLE);
                         }
-                        holder.progressBar.setProgress(holder.di.getProgress());
+                        holder.progressBar.setProgress(di.getProgress());
                     }
                 });
             } else {
